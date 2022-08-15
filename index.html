@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplciación con JavaScript (CRUD de empleados)</title>
+
+    <!--Instalacion de CSS Bootstrap5-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <!--Instalacion de JS Bootstrap5-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+</head>
+<body>
+    Hola PandaJobs GT
+    <div class="container">
+        <br>
+        <div class="row">
+            
+            <!-- Modal -->
+            <div class="modal fade" id="modelId" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <form action="javascript:void(0);" method="post" onsubmit="aplicacion.Actualizar()">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Editar Empleado</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                <label for="" class="form-label">ID</label>
+                                <input readonly type="text"
+                                    class="form-control" name="idEditar" id="idEditar" aria-describedby="helpId" placeholder="ID">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="" class="form-label">Nombre:</label>
+                                    <input type="text"class="form-control" required name="nombreEditar" id="nombreEditar" aria-describedby="helpId" placeholder="Nombre del Empleado">
+                                </div>
+                                
+                                <!-- bs5-form-input, es para agregar un email de formulario-->
+                                <div class="mb-3">
+                                    <label for="correo" class="form-label">Correo:</label>
+                                    <input type="email" class="form-control"  required name="correoEditar" id="correoEditar" aria-describedby="emailHelpId" placeholder="Correo del Empleado">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                <button type="submit" class="btn btn-primary">Actualizar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-5">
+
+                <!-- bs5-card-head-foot, es una tarjeta de presentacion -->
+                <div class="card">
+                    <div class="card-header">
+                        Empleados
+                    </div>
+                    <div class="card-body">
+                        
+                        <!--aplicacion.Agregar(), nos permite invocar al metodo para recolectar los datos ingresados en el formulario e imprimirlos en consola-->
+                        <form action="javascript:void(0);" method="post" onsubmit="aplicacion.Agregar()">
+
+                            <!-- bs5-form-input, es para agregar un input de formulario-->
+                            <div class="mb-3">
+                              <label for="" class="form-label">Nombre:</label>
+                              <input type="text" required class="form-control" name="nombre" id="nombre" aria-describedby="helpId" placeholder="Nombre del Empleado">
+                            </div>
+                            
+                            <!-- bs5-form-input, es para agregar un email de formulario-->
+                            <div class="mb-3">
+                              <label for="correo" class="form-label">Correo:</label>
+                              <input type="email"  required class="form-control" name="correo" id="correo" aria-describedby="emailHelpId" placeholder="Correo del Empleado">
+                            </div>
+
+                            <button type="submit" class="btn btn-success">Agregar Empleado</button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+            <div class="col-md-7">
+                <!-- bs5-table-defaul, es para agregar tabla al formulario-->
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Correo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="empleados">
+                        
+                    </tbody>
+                </table>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        //Consultar información de la API
+
+        //se crea una variable para consultar la ruta de la api en el navegador
+        var url ="http://localhost/empleados/";
+        var modal=new bootstrap.Modal(document.getElementById('modelId'),{keyboard:false});
+
+        var aplicacion = new function(){
+            //Se crearon las variables por medio de metodos DOM para obtener sus valores
+            this.nombre=document.getElementById("nombre"); //input nombre
+            this.correo=document.getElementById("correo"); //input correo
+
+            this.nombreEditar=document.getElementById("nombreEditar"); //input editar nompre
+            this.correoEditar=document.getElementById("correoEditar"); //input editar correo
+            this.idEditar=document.getElementById("idEditar"); //input editar correo
+
+            this.empleados=document.getElementById("empleados"); //tabla donde se enlistan los empleados
+            this.modelId=document.getElementById("modelId");
+
+             //Creamos un metodo que nos permitira leer los datos en cada fila de la tabla
+            this.Leer=function(){
+                var datos ="";
+
+                //consultador y mostrar los datos de la API en consola
+                fetch(url) //fetch realiza la solicitud a la url
+                .then(r=>r.json())
+                .then((respuesta)=>{ //recepcion de respuesta sobre la información que devuelve
+                    console.log(respuesta);
+
+                     //mostrar los datos de la API en el tbody
+
+                    //map nos ayuda a recoger cada uno de los datos que se envien de la db hacia la aplicacion
+                    respuesta.map(
+                        function(empleado,index,array){
+                           datos+="<tr>";
+                            datos+="<td>"+empleado.id+"</td>";
+                            datos+="<td>"+empleado.nombre+"</td>";
+                            datos+="<td>"+empleado.correo+"</td>";
+                            datos+='<td><div class="btn-group" role="group" aria-label=""><button type="button" class="btn btn-info" onclick="aplicacion.Editar('+empleado.id+')">Editar</button><button type="button" class="btn btn-danger" onclick="aplicacion.Borrar('+empleado.id+')">Borrar</button></div></td>';
+                            datos+="</tr>";
+                        }
+                    );
+                    return this.empleados.innerHTML=datos;
+                })
+                .catch(console.log)
+
+                //datos = "<tr><td>122</td><td>Andy</td><td>pandysteven@gmail.com</td><td>Editar | Borrar</td></tr>";
+               
+
+                
+            };
+            //Creamos un metodo que nos permitira agregar los datos formulario a la tabla (nombre y correo)
+            this.Agregar=function(){
+                console.log(nombre.value);
+                console.log(correo.value); 
+
+                //insertar datos a la API
+                var datosEnviar= {nombre:this.nombre.value, correo:this.correo.value};
+
+                fetch(url+"?insertar=1", {method:"POST", body:JSON.stringify(datosEnviar)})
+                .then(respuesta=>respuesta.json())
+                .then((datosRespuesta)=>{
+                    console.log("Insertados");
+                    this.Leer();
+                })
+                .catch(console.log);
+            };
+
+            //Creamos un metodo para borrar el registro del usuario que seleccionemos
+            this.Borrar=function(id){
+                console.log(id);
+                fetch(url+"?borrar="+id)
+                .then(respuesta=>respuesta.json())
+                .then((datosRespuesta)=>{
+                    console.log("Eliminado");
+                    this.Leer();
+                })
+                .catch(console.log);
+            }
+
+            //Creamos un metodo para abrir un moda del registro selccionado para editar
+            this.Editar=function(id){
+                console.log(id);
+                fetch(url+"?consultar="+id)
+                .then(respuesta=>respuesta.json())
+                .then((datosRespuesta)=>{
+                    this.idEditar.value=datosRespuesta['0']['id'];
+                    this.nombreEditar.value=datosRespuesta['0']['nombre'];
+                    this.correoEditar.value=datosRespuesta['0']['correo'];
+                })
+                .catch(console.log);
+                modal.show();
+            }
+
+            //creamos un metodo que nos permita realizar la accion de actualizar los datos llenados en el modal
+            this.Actualizar=function(){
+                console.log("Actualizado")
+
+                //insertar datos a la API
+                var datosEnviar= {id:this.idEditar.value,nombre:this.nombreEditar.value, correo:this.correoEditar.value};
+
+                fetch(url+"?actualizar=1", {method:"POST", body:JSON.stringify(datosEnviar)})
+                .then(respuesta=>respuesta.json())
+                .then((datosRespuesta)=>{
+                    console.log("Actualizado");
+                    this.Leer();
+                    modal.hide();
+                })
+                .catch(console.log);
+            }
+        }
+        aplicacion.Leer();
+
+    </script>
+</body>
+</html>
